@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Chess · Mr.Singh</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ................... HOME ................. -->
+<div id="home" class="screen">
+  <div style="text-align:center">
+    <div class="float" style="font-size:7.5rem;line-height:1.1">♛</div>
+    <p style="margin-top:4px;color:#9a640c;font-size:0.88rem;letter-spacing:0.18em">Mr.Singh</p>
+    <h1>Chess</h1>
+    <p style="margin:0.3rem 0 0;color:#6a4a08;letter-spacing:0.28em;font-size:0.6rem;text-transform:uppercase">"Every master was once a beginner"</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:0.75rem;width:100%">
+    <button class="btn-gold" onclick="showSetupAI()" style="display:flex;align-items:center;gap:0.75rem;justify-content:center">
+      <span class="mode-icon">🤖</span> PLAYER vs COMPUTER
+    </button>
+    <button class="btn-out" onclick="startLocal()" style="display:flex;align-items:center;gap:0.75rem;justify-content:center">
+      <span class="mode-icon">🎮</span> LOCAL 2 PLAYERS
+    </button>
+    <div class="divider"><span style="color:#6a4a08;font-size:0.58rem;letter-spacing:0.15em">OFFLINE CHESS GAME</span></div>
+  </div>
+</div>
+
+<!-- .................. AI SETUP ......................-->
+<div id="setup-ai" class="screen" style="display:none">
+  <div style="text-align:center"><div style="font-size:3rem">🤖</div><h2>VS COMPUTER</h2></div>
+  <div style="width:100%;display:flex;flex-direction:column;gap:1.1rem">
+    <div>
+      <div class="label">PLAY AS</div>
+      <div class="btn-row" id="color-btns">
+        <button class="btn-out" id="btn-white" onclick="selColor('w')">♔ White</button>
+        <button class="btn-out" id="btn-black" onclick="selColor('b')">♚ Black</button>
+      </div>
+    </div>
+    <div>
+      <div class="label">DIFFICULTY</div>
+      <div class="btn-row" id="diff-btns">
+        <button class="btn-out" id="btn-easy"   onclick="selDiff('easy')">🌱 Easy</button>
+        <button class="btn-out" id="btn-medium" onclick="selDiff('medium')">⚔️ Med</button>
+        <button class="btn-out" id="btn-hard"   onclick="selDiff('hard')">💀 Hard</button>
+      </div>
+    </div>
+    <button class="btn-gold" onclick="startAI()">▶ Start Game</button>
+    <button class="btn-dim"  onclick="show('home')">← Back</button>
+  </div>
+</div>
+
+<!-- ......................GAME ...................... -->
+<div id="game" style="display:none;flex-direction:column;align-items:center;width:100%">
+
+  <!-- Top bar: badge · mode · difficulty · menu -->
+  <div id="game-header">
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <span id="player-badge" style="color:#f7d774;font-size:1rem">♔</span>
+      <span id="mode-label"   style="color:#c8a840;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase">LOCAL</span>
+    </div>
+    <div id="diff-badge" class="badge"></div>
+    <button id="btn-mute" class="btn-dim" onclick="toggleMute()" title="Toggle sound">🔊</button> 
+    <button class="btn-dim" onclick="resetHome()">← Menu</button>
+  </div>
+
+  <!-- Clocks + move counter -->
+  <div id="stats-bar">
+    <div class="clock-block">
+      <span class="clock-label">♔ White</span>
+      <span id="clock-w" class="clock-time active">0:00</span>
+    </div>
+    <div class="stats-center">
+      <span id="move-count" class="move-count">0</span>
+      <span class="move-label">Moves</span>
+      <span id="move-history-mini" class="move-history-mini"></span>
+    </div>
+    <div class="clock-block">
+      <span class="clock-label">♚ Black</span>
+      <span id="clock-b" class="clock-time inactive">0:00</span>
+    </div>
+  </div>
+
+  <!-- Status line -->
+  <div id="status">White to move</div>
+
+  <!-- ── Evaluation Bar ── -->
+  <div id="eval-wrap">
+    <span class="eval-side-label" style="color:#d4af37">W</span>
+    <div id="eval-bar">
+      <div id="eval-white-fill"></div>
+    </div>
+    <span class="eval-side-label" style="color:#666">B</span>
+    <span id="eval-score">0.0</span>
+  </div>
+
+  <!-- ── Board ── -->
+  <div id="board-col">
+    <div class="coords-row" id="files-top"></div>
+    <div style="display:flex;align-items:stretch">
+      <div class="coord-col" id="ranks-left"></div>
+      <div id="board-wrap">
+        <div id="board"></div>
+        <div id="win-message" style="display:none"></div>
+        <canvas id="confetti"></canvas>
+      </div>
+    </div>
+    <div class="coords-row" id="files-bot"></div>
+  </div>
+
+  <!-- ── Per-side Controls (below board) ── -->
+  <div id="board-controls">
+    <!-- White side -->
+    <div class="side-ctrl white-ctrl">
+      <span class="side-ctrl-label">♔ White</span>
+      <button id="btn-undo-w" class="ctrl-btn" onclick="undoMove()"      title="Undo last move"  disabled>⏮ Undo</button>
+      <button id="btn-hint-w" class="ctrl-btn hint-btn" onclick="showHint()" title="Show best move hint">💡Hint</button>
+    </div>
+    <!-- Black side -->
+    <div class="side-ctrl black-ctrl">
+      <span class="side-ctrl-label">♚ Black</span>
+      <button id="btn-undo-b" class="ctrl-btn" onclick="undoMove()"      title="Undo last move"  disabled>⏮ Undo</button>
+      <button id="btn-hint-b" class="ctrl-btn hint-btn" onclick="showHint()" title="Show best move hint">💡Hint</button>
+    </div>
+  </div>
+
+  <!-- Footer: play-again / menu after game ends -->
+  <div id="game-footer"></div>
+
+</div><!-- #game -->
+
+<script src="chess.js"></script>
+</body>
+</html>
